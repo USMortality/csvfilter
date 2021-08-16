@@ -45,13 +45,15 @@ app.get('/data.csv', async (req, res) => {
         await download(req.query.url, filename)
     }
 
-    let filtered_data = await processLineByLine(filename);
+    let countries = req.query.countries.split(',')
+
+    let filtered_data = await processLineByLine(filename, countries);
     console.log(filtered_data)
     res.header('Content-Type', 'text/csv')
     res.send(makeCsv(filtered_data))
 })
 
-async function processLineByLine(file) {
+async function processLineByLine(file, countries) {
     const fileStream = fs.createReadStream(file);
 
     const rl = readline.createInterface({
@@ -61,15 +63,15 @@ async function processLineByLine(file) {
 
     let filtered_data = [], first_line = true
     for await (const line of rl) {
-        if (first_line
-            || line.startsWith("United States")
-            || line.startsWith("France")
-            || line.startsWith("Germany")
-            || line.startsWith("Israel")
-            || line.startsWith("Canada")
-        ) {
+        if (first_line) {
             first_line = false
             filtered_data.push(line)
+        } else {
+            countries.forEach(country => {
+                if (line.startsWith(country)) {
+                    filtered_data.push(line)
+                }
+            });
         }
     }
     return filtered_data
