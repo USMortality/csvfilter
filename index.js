@@ -68,7 +68,7 @@ async function processLineByLine(file, countries) {
             filtered_data.push(line)
         } else {
             countries.forEach(country => {
-                if (line.startsWith(country)) {
+                if (line.includes(country)) {
                     filtered_data.push(line)
                 }
             });
