@@ -11,6 +11,10 @@ const readline = require('readline');
 function download(url, path) {
     return new Promise((resolve, reject) => {
         request.head(url, (err, res, body) => {
+            if (err) {
+                console.log(err)
+                reject()
+            }
             request(url)
                 .pipe(fs.createWriteStream(path))
                 .on('close', () => {
@@ -45,15 +49,15 @@ app.get('/data.csv', async (req, res) => {
         await download(req.query.url, filename)
     }
 
-    let countries = req.query.countries.split(',')
+    let filter = req.query.filter.split(',')
 
-    let filtered_data = await processLineByLine(filename, countries);
+    let filtered_data = await processLineByLine(filename, filter);
     console.log(filtered_data)
     res.header('Content-Type', 'text/csv')
     res.send(makeCsv(filtered_data))
 })
 
-async function processLineByLine(file, countries) {
+async function processLineByLine(file, filter) {
     const fileStream = fs.createReadStream(file);
 
     const rl = readline.createInterface({
@@ -67,7 +71,7 @@ async function processLineByLine(file, countries) {
             first_line = false
             filtered_data.push(line)
         } else {
-            countries.forEach(country => {
+            filter.forEach(country => {
                 if (line.includes(country)) {
                     filtered_data.push(line)
                 }
