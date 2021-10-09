@@ -49,9 +49,15 @@ app.get('/data.csv', async (req, res) => {
         await download(req.query.url, filename)
     }
 
-    let filter = req.query.filter.split(',')
+    let filter
+    if (req.query.filter) filter = req.query.filter
+    else if (req.query.countries) filter = req.query.countries
+    else {
+        res.statusMessage = "Must include filter parameter.";
+        res.status(400).end();
+    }
 
-    let filtered_data = await processLineByLine(filename, filter);
+    let filtered_data = await processLineByLine(filename, filter.split(','));
     console.log(filtered_data)
     res.header('Content-Type', 'text/csv')
     res.send(makeCsv(filtered_data))
