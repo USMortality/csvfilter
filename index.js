@@ -31,9 +31,7 @@ function makeCsv(data) {
     return result
 }
 
-app.use('/', express.static(path.join(__dirname, 'public')))
-
-app.get('/data.csv', async (req, res) => {
+async function handleRequest() {
     console.log(`Downloading ${req.query.url}`)
 
     var parsed = url.parse(req.query.url);
@@ -42,7 +40,8 @@ app.get('/data.csv', async (req, res) => {
     let isCached = false
     if (fs.existsSync(filename)) {
         let stats = fs.statSync(filename)
-        isCached = stats.mtime.getTime() > (new Date()).getTime() - 10 * 60 * 1000 // 10 Minutes cache
+        isCached = stats.mtime.getTime() >
+            (new Date()).getTime() - 10 * 60 * 1000 // 10 Minutes cache
     }
     if (!isCached) {
         console.log('Downloading...')
@@ -57,11 +56,18 @@ app.get('/data.csv', async (req, res) => {
         res.status(400).end();
     }
 
-    let filtered_data = await processLineByLine(filename, filter.split(','));
+    let filtered_data = await processLineByLine(
+        filename, filter.split(',')
+    );
     console.log(filtered_data)
     res.header('Content-Type', 'text/csv')
     res.send(makeCsv(filtered_data))
-})
+}
+
+app.use('/', express.static(path.join(__dirname, 'public')))
+
+app.get('/data.csv', handleRequest)
+app.get('/data.tsv', handleRequest)
 
 async function processLineByLine(file, filter) {
     const fileStream = fs.createReadStream(file);
