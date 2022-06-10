@@ -31,7 +31,7 @@ function makeCsv(data) {
     return result
 }
 
-async function handleRequest() {
+async function handleRequest(req, res) {
     console.log(`Downloading ${req.query.url}`)
 
     var parsed = url.parse(req.query.url);
