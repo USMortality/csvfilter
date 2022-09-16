@@ -7,6 +7,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const fs = require('fs');
 const readline = require('readline');
+const crypto = require('crypto')
 
 function download(url, path) {
     return new Promise((resolve, reject) => {
@@ -32,11 +33,10 @@ function makeCsv(data) {
 }
 
 async function handleRequest(req, res) {
-    console.log(`Downloading ${req.query.url}`)
-
-    var parsed = url.parse(req.query.url);
-    let filename = path.join('download', path.basename(parsed.pathname))
-
+    console.log(`Processing ${req.query.url}`)
+    let hash = crypto.createHash('md5').update(req.query.url).digest("hex")
+    let filename = path.join('download', `${hash}.csv`)
+    console.log(filename)
     let isCached = false
     if (fs.existsSync(filename)) {
         let stats = fs.statSync(filename)
@@ -59,7 +59,6 @@ async function handleRequest(req, res) {
     let filtered_data = await processLineByLine(
         filename, filter.split(',')
     );
-    console.log(filtered_data)
     res.header('Content-Type', 'text/csv')
     res.send(makeCsv(filtered_data))
 }
