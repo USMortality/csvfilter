@@ -63,11 +63,6 @@ async function handleRequest(req, res) {
     res.send(makeCsv(filtered_data))
 }
 
-app.use('/', express.static(path.join(__dirname, 'public')))
-
-app.get('/data.csv', handleRequest)
-app.get('/data.tsv', handleRequest)
-
 async function processLineByLine(file, filter) {
     const fileStream = fs.createReadStream(file);
 
@@ -91,6 +86,24 @@ async function processLineByLine(file, filter) {
     }
     return filtered_data
 }
+
+app.use('/', express.static(path.join(__dirname, 'public')))
+app.use(express.text());
+app.get('/data.csv', handleRequest)
+app.get('/data.tsv', handleRequest)
+
+let errors = []
+app.get('/error.json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(errors, null, 2))
+})
+
+const n = 100
+app.post('/error', (req, res) => {
+    errors.unshift(req.body)
+    if (errors.length > n) errors = errors.slice(0, n)
+    res.end()
+})
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
