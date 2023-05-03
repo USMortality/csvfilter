@@ -98,7 +98,7 @@ app.get('/error.json', (_req, res) => {
     res.end(JSON.stringify(errors, null, 2))
 })
 
-const n = 100
+const n = 1000
 app.post('/error', (req, res) => {
     errors.unshift(req.body)
     if (errors.length > n) errors = errors.slice(0, n)
